@@ -29,6 +29,7 @@ public class demoSendMail {
 		msg.setFrom(new InternetAddress("phamvanquang16599@gmail.com"));
 		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("phamquang16599@gmail.com"));
 		msg.setSubject("Write Log");
+		msg.setSubject("Write Log");
 		msg.setText(text);
 
 		Transport.send(msg);
