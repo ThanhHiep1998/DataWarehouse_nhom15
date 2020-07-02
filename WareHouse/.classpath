@@ -29,5 +29,7 @@
 	<classpathentry kind="lib" path="D:/download/poi-4.1.2/lib/SparseBitSet-1.2.jar"/>
 	<classpathentry kind="lib" path="D:/download/chilkat-9.5.0-jdk11-x64/chilkat.jar"/>
 	<classpathentry kind="lib" path="D:/download/chilkat-9.5.0-jdk11-x64/chilkat.dll"/>
+	<classpathentry kind="lib" path="D:/download/java_mail/activation.jar"/>
+	<classpathentry kind="lib" path="D:/download/java_mail/java-mail-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
