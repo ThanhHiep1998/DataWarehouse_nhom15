@@ -8,25 +8,37 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import com.chilkatsoft.CkGlobal;
 import com.chilkatsoft.CkScp;
 import com.chilkatsoft.CkSsh;
+
 
 public class WriteLog {
 	
 //	 khai báo 
 	Config config = new Config();
 	public static WriteLog writeLog = new WriteLog();
+	String text = "", result = "";
 	
 	
 	//tạo kết nối tới config
 	
-	public void connectConfig(String idConfig) {
+	public void connectConfig(String idConFig) {
 		try {
 			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb", "root","sa123");
 			Statement statement_controldb = connectControlDB.createStatement();
-			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port from config where id ='"+ idConfig + "'";
+			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port from config where id ='"+ idConFig + "'";
 			ResultSet rs = statement_controldb.executeQuery(sql);
 				
 			// Di chuyển con trỏ xuống bản ghi kế tiếp.
@@ -67,10 +79,11 @@ public class WriteLog {
 			String localPath =  "D:\\quang";
 
 			
-			// download
 			CkSsh ssh = new CkSsh();
 			CkGlobal glob = new CkGlobal();
-			glob.UnlockBundle("Quang");
+			glob.UnlockBundle("Anything for 30-day trial");
+			
+			//kết nối tới máy chủ ssh
 			boolean success = ssh.Connect(hostName, port);
 			if (success != true) {
 				System.out.println(ssh.lastErrorText());
@@ -78,11 +91,15 @@ public class WriteLog {
 			}
 			// đợi 5s để đọc phản hồi
 			ssh.put_IdleTimeoutMs(5000);
+			
+			// Xác thực bằng tên đăng nhập / mật khẩu:
 			success = ssh.AuthenticatePw(userName, pass);
 			if (success != true) {
 				System.out.println(ssh.lastErrorText());
 				return;
 			}
+			
+			// kết nối thành công rồi sử dụng
 			CkScp scp = new CkScp();
 			success = scp.UseSsh(ssh);
 			if (success != true) {
@@ -90,17 +107,7 @@ public class WriteLog {
 				return;
 			}
 			
-			// Download synchronization modes:
-			// mode=0: Download all files
-			// mode=1: Download all files that do not exist on the local filesystem.
-			// mode=2: Download newer or non-existant files.
-			// mode=3: Download only newer files.
-			// If a file does not already exist on the local filesystem, it is not
-			// downloaded from the server.
-			// mode=5: Download only missing files or files with size differences.
-			// mode=6: Same as mode 5, but also download newer files.
 			int mode = 2;
-			
 			// download theo định dạng
 			scp.put_SyncMustMatch("sinhvien_chieu*");
 			success = scp.SyncTreeDownload(remotePath, localPath, mode, false);
@@ -109,41 +116,36 @@ public class WriteLog {
 				return;
 			}
 			System.out.println("SCP download file success.");
-
+			System.out.println("-------------------------------");
 			ssh.Disconnect();
 		}
 		
 		static {
 			try {
-				System.loadLibrary("chilkat");
+			//	System.loadLibrary("chilkat");
+					System.load("D:\\download\\chilkat-9.5.0-jdk11-x64\\chilkat.dll");
 			} catch (UnsatisfiedLinkError e) {
 				System.err.println("Native code library failed to load.\n" + e);
 				System.exit(1);
 			}
 		}
 		
-
+		
+	//   drive.ecepvn.org/volume1/ECEP/song.nguyen/DW_2020/data	
+		
 	//cắt ra phần host
 	public String getHost(String path) {
 		String hostName = "";
-		int num = -99;
-		num = path.indexOf("/");
-		if (num == -1) {
-			num = path.indexOf("\\");
-		}
+		int num = path.indexOf("/");
 		hostName = path.substring(0, num);
 		return hostName;
 	}
-
+	
 	
 	// cắt ra phần remotepath
 	public String getRemotePath(String path) {
 		String remotePath = "";
-		int num = -99;
-		num = path.indexOf("/");
-		if (num == -1) {
-			num = path.indexOf("\\");
-		}
+		int num = path.indexOf("/");
 		remotePath = path.substring(num);
 		return remotePath;
 	}
@@ -151,21 +153,49 @@ public class WriteLog {
 	
 	
 	// duyệt rồi ghi log cho từng file
-		public void checkFile() {
+		public void checkFile() throws AddressException, MessagingException {
 			File Folder = new File("D:\\quang");
 			File[] childFile = Folder.listFiles();
 			for (File file : childFile) {
 				executeWriteLog(file);
+				text = file.getName() +"\t" +"\t" + "------- write log success"  + " \n";
+				result += text;
 					
 		}
+				sendMail(result);
+				System.out.println("SEND MAIL SUCCESS");
+			
 	}
+		
+		// send Mail
+	public void sendMail(String text) throws AddressException, MessagingException {
+		Properties p = new Properties();
+		p.put("mail.smtp.auth", "true");
+		p.put("mail.smtp.starttls.enable", "true");
+		p.put("mail.smtp.host", "smtp.gmail.com");
+		p.put("mail.smtp.port", 587);
+		// get Session
+		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication("phamvanquang16599@gmail.com", "0975390766");
+			}
+		});
+		Message msg = new MimeMessage(s);
+		msg.setFrom(new InternetAddress("phamvanquang16599@gmail.com"));
+		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("phamquang16599@gmail.com"));
+		msg.setSubject("Write Log");
+		msg.setText(text);
+
+		Transport.send(msg);
+	}
+
 
 	// thực hiện việc ghi log
 	public void executeWriteLog(File file) {
 		// lấy ngày, giờ  ghi log
-		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
 		Date s = new Date();
-		String dateFormat = formatter.format(s);
+		String dateFormat = format.format(s);
 
 		try {
 			// tạo kết nối để thực hiện việc ghi log
@@ -176,7 +206,7 @@ public class WriteLog {
 			statement.setString(2, config.getId());
 			statement.setString(3, file.getName());
 			statement.setString(4, "ER");
-			statement.setString(5, writeLog.findEx(file.getAbsolutePath()));
+			statement.setString(5, writeLog.getExtend(file.getAbsolutePath()));
 			statement.setString(6, dateFormat);
 			statement.setString(7, "NULL");
 
@@ -190,6 +220,7 @@ public class WriteLog {
 			System.out.println("------------------------------");
 			
 			
+			
 		} catch (Exception e) {
 			System.out.println("fail");
 			System.out.println(e);
@@ -198,17 +229,16 @@ public class WriteLog {
 	}
 	
 	//cắt lấy phần đuôi
-	public String findEx(String path) {
-		String ex = "";
-		int numex = -99;
-		numex = path.indexOf(".");
-		ex = path.substring(numex + 1);
-		return ex;
+	public String getExtend(String path) {
+		String extend = "";
+		int num = path.indexOf(".") + 1;
+		extend = path.substring(num);
+		return extend;
 	}
+	
 
 		
-		
-	public static void main(String[] args) {
+	public static void main(String[] args) throws AddressException, MessagingException {
 //		String hostname = "drive.ecepvn.org";
 //		int port = 2227;
 //		String user = "guest_access";
@@ -217,7 +247,8 @@ public class WriteLog {
 //		String localPath = "D:\\quang";
 //		DownloadBySCP(hostname, port, user, pw, remotePath, localPath);
 //	 	writeLog.executeWriteLog(new File("D:\\sv.xlsx"));
-		writeLog.connectConfig("1");
+//		writeLog.connectConfig("1");
+		writeLog.connectConfig(args[0]);
 		writeLog.DownloadBySCP();
 		writeLog.checkFile();
 	}
