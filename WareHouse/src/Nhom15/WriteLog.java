@@ -228,7 +228,7 @@ public class WriteLog {
 
 	}
 	
-	//cắt lấy phần đuôi
+	//cắt lấy phần mở rộng
 	public String getExtend(String path) {
 		String extend = "";
 		int num = path.indexOf(".") + 1;
