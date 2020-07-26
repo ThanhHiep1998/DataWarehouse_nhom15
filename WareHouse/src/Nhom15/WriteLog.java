@@ -29,7 +29,8 @@ public class WriteLog {
 //	 khai báo 
 	Config config = new Config();
 	public static WriteLog writeLog = new WriteLog();
-	String text = "", result = "";
+	String text = "", result = "", format_Name= "";
+	
 	
 	
 	//tạo kết nối tới config
@@ -38,7 +39,7 @@ public class WriteLog {
 		try {
 			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb", "root","sa123");
 			Statement statement_controldb = connectControlDB.createStatement();
-			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port from config where id ='"+ idConFig + "'";
+			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ idConFig + "'";
 			ResultSet rs = statement_controldb.executeQuery(sql);
 				
 			// Di chuyển con trỏ xuống bản ghi kế tiếp.
@@ -53,7 +54,10 @@ public class WriteLog {
 				config.setPw_Des(rs.getString(7));
 				config.setDelimiters(rs.getString(8));
 				config.setPort(rs.getString(9));
+				config.setFormat_Name(rs.getString(10));
+				format_Name = config.getFormat_Name();
 				}
+				
 				
 			// Đóng kết nối
 			connectControlDB.close();
@@ -109,7 +113,7 @@ public class WriteLog {
 			
 			int mode = 2;
 			// download theo định dạng
-			scp.put_SyncMustMatch("sinhvien_chieu*");
+			scp.put_SyncMustMatch(writeLog.format_Name);
 			success = scp.SyncTreeDownload(remotePath, localPath, mode, false);
 			if (success != true) {
 				System.out.println(scp.lastErrorText());
@@ -158,37 +162,15 @@ public class WriteLog {
 			File[] childFile = Folder.listFiles();
 			for (File file : childFile) {
 				executeWriteLog(file);
-				text = file.getName() +"\t" +"\t" + "------- write log success"  + " \n";
+				text = file.getName() +"\t" + "------- write log success"  + " \n";
 				result += text;
 					
 		}
-				sendMail(result);
-				System.out.println("SEND MAIL SUCCESS");
+//				sendMail(result);
+//				System.out.println("SEND MAIL SUCCESS");
 			
 	}
-		
-		// send Mail
-	public void sendMail(String text) throws AddressException, MessagingException {
-		Properties p = new Properties();
-		p.put("mail.smtp.auth", "true");
-		p.put("mail.smtp.starttls.enable", "true");
-		p.put("mail.smtp.host", "smtp.gmail.com");
-		p.put("mail.smtp.port", 587);
-		// get Session
-		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication("phamvanquang16599@gmail.com", "0975390766");
-			}
-		});
-		Message msg = new MimeMessage(s);
-		msg.setFrom(new InternetAddress("phamvanquang16599@gmail.com"));
-		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("phamquang16599@gmail.com"));
-		msg.setSubject("Write Log");
-		msg.setText(text);
-
-		Transport.send(msg);
-	}
-
+	
 
 	// thực hiện việc ghi log
 	public void executeWriteLog(File file) {
@@ -236,6 +218,29 @@ public class WriteLog {
 		return extend;
 	}
 	
+	
+	// send Mail
+	public void sendMail(String text) throws AddressException, MessagingException {
+		Properties p = new Properties();
+		p.put("mail.smtp.auth", "true");
+		p.put("mail.smtp.starttls.enable", "true");
+		p.put("mail.smtp.host", "smtp.gmail.com");
+		p.put("mail.smtp.port", 587);
+		// get Session
+		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication("phamvanquang16599@gmail.com", "0975390766");
+			}
+		});
+		Message msg = new MimeMessage(s);
+		msg.setFrom(new InternetAddress("phamvanquang16599@gmail.com"));
+		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("phamquang16599@gmail.com"));
+		msg.setSubject("Write Log");
+		msg.setText(text);
+
+		Transport.send(msg);
+	}
+	
 
 		
 	public static void main(String[] args) throws AddressException, MessagingException {
@@ -247,7 +252,7 @@ public class WriteLog {
 //		String localPath = "D:\\quang";
 //		DownloadBySCP(hostname, port, user, pw, remotePath, localPath);
 //	 	writeLog.executeWriteLog(new File("D:\\sv.xlsx"));
-//		writeLog.connectConfig("1");
+//		writeLog.connectConfig("2");
 		writeLog.connectConfig(args[0]);
 		writeLog.DownloadBySCP();
 		writeLog.checkFile();
