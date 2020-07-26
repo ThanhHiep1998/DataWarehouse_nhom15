@@ -37,6 +37,7 @@ public class WriteLog {
 	
 	public void connectConfig(String idConFig) {
 		try {
+//			Connection connectControlDB1 = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
 			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb", "root","sa123");
 			Statement statement_controldb = connectControlDB.createStatement();
 			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ idConFig + "'";
@@ -181,10 +182,11 @@ public class WriteLog {
 
 		try {
 			// tạo kết nối để thực hiện việc ghi log
+//			Connection connectControlDB1 = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
 			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
 			String sql_insert = "insert into log (id_log, id_config, file_name, status, file_type,date_download,date_staging) values (?,?,?,?,?,?,?)";
 			PreparedStatement statement = connectControlDB.prepareStatement(sql_insert);
-			statement.setString(1, config.getId().concat(file.getName()));
+			statement.setString(1, config.getId().concat("_" +file.getName()));
 			statement.setString(2, config.getId());
 			statement.setString(3, file.getName());
 			statement.setString(4, "ER");
@@ -241,9 +243,15 @@ public class WriteLog {
 		Transport.send(msg);
 	}
 	
+	public void mainWriteLog(String idConFig) throws AddressException, MessagingException {
+		writeLog.connectConfig(idConFig);
+		writeLog.DownloadBySCP();
+		writeLog.checkFile();
+		
+	}
 
 		
-	public static void main(String[] args) throws AddressException, MessagingException {
+//	public static void main(String[] args) throws AddressException, MessagingException {
 //		String hostname = "drive.ecepvn.org";
 //		int port = 2227;
 //		String user = "guest_access";
@@ -252,10 +260,11 @@ public class WriteLog {
 //		String localPath = "D:\\quang";
 //		DownloadBySCP(hostname, port, user, pw, remotePath, localPath);
 //	 	writeLog.executeWriteLog(new File("D:\\sv.xlsx"));
+		
 //		writeLog.connectConfig("2");
-		writeLog.connectConfig(args[0]);
-		writeLog.DownloadBySCP();
-		writeLog.checkFile();
-	}
-	}
-
+//		writeLog.connectConfig(args[0]);
+//		writeLog.DownloadBySCP();
+//		writeLog.checkFile();
+		
+//	}
+}
