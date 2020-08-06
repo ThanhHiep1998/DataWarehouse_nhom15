@@ -38,6 +38,19 @@ public class ConnectDB {
 			return conn;
 		}
 		
+		public static Connection getConnecSQLServer(String dburl, String username, String pw) {
+			Connection conn = null;
+			try {
+				Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+				conn = DriverManager.getConnection(dburl, username, pw);
+				System.out.println("connect successfully!");
+			} catch (Exception ex) {
+				System.out.println("connect failure!");
+				ex.printStackTrace();
+			}
+			return conn;
+		}
+		
 		
 	}
 

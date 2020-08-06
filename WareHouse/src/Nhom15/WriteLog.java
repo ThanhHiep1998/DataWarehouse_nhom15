@@ -1,6 +1,7 @@
 package Nhom15;
 
 import java.io.File;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,14 +38,14 @@ public class WriteLog {
 	
 	public void connectConfig(String idConFig) {
 		try {
-//			Connection connectControlDB1 = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
-			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb", "root","sa123");
+			Connection connectControlDB = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
+//			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb", "root","sa123");
 			Statement statement_controldb = connectControlDB.createStatement();
 			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ idConFig + "'";
 			ResultSet rs = statement_controldb.executeQuery(sql);
 				
 			// Di chuyển con trỏ xuống bản ghi kế tiếp.
-			while (rs.next()) {
+			if (rs.next()) {
 				// set giá trị 
 				config.setId(rs.getString(1));
 				config.setSource(rs.getString(2));
@@ -182,10 +183,10 @@ public class WriteLog {
 
 		try {
 			// tạo kết nối để thực hiện việc ghi log
-//			Connection connectControlDB1 = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
-			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
-			String sql_insert = "insert into log (id_log, id_config, file_name, status, file_type,date_download,date_staging) values (?,?,?,?,?,?,?)";
-			PreparedStatement statement = connectControlDB.prepareStatement(sql_insert);
+			Connection connectControlDB = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
+//			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
+			String sql_insert = "{call sp_insert_log (?,?,?,?,?,?,?) }" ;
+			CallableStatement statement = connectControlDB.prepareCall(sql_insert);
 			statement.setString(1, config.getId().concat("_" +file.getName()));
 			statement.setString(2, config.getId());
 			statement.setString(3, file.getName());
