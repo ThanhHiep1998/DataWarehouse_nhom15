@@ -1,4 +1,5 @@
 package loadFIle;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,7 +15,7 @@ import com.chilkatsoft.CkGlobal;
 import com.chilkatsoft.CkScp;
 import com.chilkatsoft.CkSsh;
 
-public class load {
+public class Load {
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 	static final String DB_URL = "jdbc:mysql://localhost/sinhvien";
 
@@ -26,20 +27,21 @@ public class load {
 	static ArrayList<String> listER = new ArrayList<String>();
 	static Map<String, String> map = new HashMap<>();
 	static SendEmail sendMail = new SendEmail();
-	private static String USER_NAME = "dotuongtu197@gmail.com"; // GMail user
+	private static String USER_NAME = "hothanhhiepc5@gmail.com"; // GMail user
 																// name (just
 																// the part
 																// before
 																// "@gmail.com")
-	private static String PASSWORD = "kid159753"; // GMail password
-	private static String RECIPIENT = "dotuongtu198@gmail.com";
+	private static String PASSWORD = "thanhhiep1998"; // GMail password
+	private static String RECIPIENT = "hothanhhiepb5@gmail.com";
 	String subject = "Thong bao ";
 	String body = "load to stagging thanh cong";
 	String[] listEmail = { RECIPIENT };
-static String table_target="";
-static String db_target="";
-static String temp_target="";
-static String db_config="";
+	static String table_target = "";
+	static String db_target = "";
+	static String temp_target = "";
+	static String db_config = "";
+
 	static void connectDb() throws ClassNotFoundException, SQLException {
 
 		// Buoc 2: Dang ky Driver
@@ -49,27 +51,29 @@ static String db_config="";
 		conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		System.out.println("Tao cac lenh truy van SQL ...");
 	}
-private static void getConfigData(int id) throws SQLException {
-	// lay thong tin data
-	String sql = "{call datacontrol.getAllDataconfig (?)}";
-	stmt = conn.prepareCall(sql);
-	int id_config = id;
-	stmt.setInt(1, id_config);
-	ResultSet rs = stmt.executeQuery();
-	while (rs.next()) {
-	db_target=rs.getString(12);
-	System.err.println(db_target);
-	table_target=rs.getString(13);
-	temp_target=rs.getString(14);
-	db_config=rs.getString(15);
-}}
-	private void getFileFromServer() throws SQLException {
 
+	private static void getConfigData(int id) throws SQLException {
+		// lay thong tin data
+		String sql = "{call datacontrol.getAllDataconfig (?)}";
+		stmt = conn.prepareCall(sql);
+		int id_config = id;
+		stmt.setInt(1, id_config);
+		ResultSet rs = stmt.executeQuery();
+		while (rs.next()) {
+			db_target = rs.getString(12);
+			System.err.println(db_target);
+			table_target = rs.getString(13);
+			temp_target = rs.getString(14);
+			db_config = rs.getString(15);
+		}
+	}
+
+	private void getFileFromServer() throws SQLException {
 
 		// lay data ve
 		CkSsh ssh = new CkSsh();
 		CkGlobal ck = new CkGlobal();
-		ck.UnlockBundle("hello");
+		ck.UnlockBundle("Hello");
 		String hostname = "drive.ecepvn.org";
 		int port = 2227;
 		boolean success = ssh.Connect(hostname, port);
@@ -94,7 +98,7 @@ private static void getConfigData(int id) throws SQLException {
 		scp.put_SyncMustMatch("sinhvien*.*");// down tat ca cac file bat dau
 												// bang sinhvien
 		String remotePath = "/volume1/ECEP/song.nguyen/DW_2020/data";
-		String localPath = "C:\\Users\\Tuong Tu\\Desktop\\copy"; // thu muc muon
+		String localPath = "C:\\Users\\Thanh Hiep\\Downloads\\New folder"; // thu muc muon
 																	// down file
 																	// ve
 		success = scp.SyncTreeDownload(remotePath, localPath, 2, false);
@@ -102,7 +106,7 @@ private static void getConfigData(int id) throws SQLException {
 			System.out.println(scp.lastErrorText());
 			return;
 		}
-		System.out.println("okkkkkkkkkkkkk");
+		System.out.println("Done");
 		ssh.Disconnect();
 	}
 
@@ -113,7 +117,7 @@ private static void getConfigData(int id) throws SQLException {
 		// Dau tien gan ket tham so IN, sau do la tham so OUT
 
 		stmt.setInt(1, id_config);
- 
+
 		// Su dung phuong thuc execute de chay stored procedure.
 		System.out.println("Thuc thi stored procedure ...");
 		ResultSet rs = stmt.executeQuery();
@@ -129,20 +133,20 @@ private static void getConfigData(int id) throws SQLException {
 	}
 
 	static void loadToStagging() throws SQLException {
-		String useDB = "use "+db_target;
+		String useDB = "use " + db_target;
 		System.out.println(useDB);
-		
+
 		System.out.println(table_target);
 		stmt.executeUpdate(useDB);
 		System.err.println("Bat dau load");
 		for (Map.Entry<String, String> entry : map.entrySet()) {
-			String target="sinhvien.stagging";
+			String target = "sinhvien.stagging";
 			String k = entry.getKey();
 			String v = entry.getValue();
 			System.out.println("Key: " + k + ", Value: " + v);
 
 			// dung load file ko the bo vao procedure
-			String load_stagging = "LOAD DATA  INFILE '" + v + "' " + "INTO TABLE "+target+""
+			String load_stagging = "LOAD DATA  INFILE '" + v + "' " + "INTO TABLE " + target + ""
 					+ " FIELDS TERMINATED BY '\t' " + "ENCLOSED BY '' " + "LINES TERMINATED BY '\r\n';";
 
 			System.out.println("Dang load dong:  " + v);
@@ -158,15 +162,15 @@ private static void getConfigData(int id) throws SQLException {
 	}
 
 	private static void loadToTemp() throws SQLException {
-		String use_dc = "use "+db_target;
+		String use_dc = "use " + db_target;
 		stmt.executeUpdate(use_dc);
-		String call_insert = " insert into "+temp_target+" select * from "+table_target+"";
+		String call_insert = " insert into " + temp_target + " select * from " + table_target + "";
 		stmt = conn.prepareCall(call_insert);
-			stmt.executeUpdate();
+		stmt.executeUpdate();
 		System.err.println("load from stagging to temp");
 
 		System.out.println("dung db sinh vien");
-		String call_truncate = " TRUNCATE TABLE "+table_target+";";
+		String call_truncate = " TRUNCATE TABLE " + table_target + ";";
 		stmt = conn.prepareCall(call_truncate);
 		System.out.println("xoa du lieu trong stagging");
 		stmt.executeUpdate();
@@ -174,20 +178,19 @@ private static void getConfigData(int id) throws SQLException {
 
 	}
 
-	private static	void editTemp() throws SQLException {
-		String use_dc = "use "+db_target;
+	private static void editTemp() throws SQLException {
+		String use_dc = "use " + db_target;
 		stmt.executeUpdate(use_dc);
-		String alter_temp=" ALTER TABLE "+temp_target+" ADD sk INT PRIMARY KEY AUTO_INCREMENT;";
+		String alter_temp = " ALTER TABLE " + temp_target + " ADD sk INT PRIMARY KEY AUTO_INCREMENT;";
 		stmt = conn.prepareCall(alter_temp);
 		stmt.executeUpdate();
 		System.out.println("tao khoa sk cho temp");
-		String setSafeMode= "SET SQL_SAFE_UPDATES = 0;";
+		String setSafeMode = "SET SQL_SAFE_UPDATES = 0;";
 		stmt.executeUpdate(use_dc);
-		String deleteStt="delete from  "+temp_target+" where stt='stt'";
+		String deleteStt = "delete from  " + temp_target + " where stt='stt'";
 		stmt.executeUpdate(deleteStt);
 		System.out.println("xoa dong stt");
-		
-		
+
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
