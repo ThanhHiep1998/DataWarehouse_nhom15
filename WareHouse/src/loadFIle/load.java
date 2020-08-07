@@ -16,7 +16,7 @@ import com.chilkatsoft.CkSsh;
 
 public class load {
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://localhost/datacontrol";
+	static final String DB_URL = "jdbc:mysql://localhost/sinhvien";
 
 	// Ten nguoi dung va mat khau cua co so du lieu
 	static final String USER = "root";
