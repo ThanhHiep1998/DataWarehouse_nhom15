@@ -1,9 +1,8 @@
-package Nhom15;
+package TH;
 
 import java.io.File;
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -36,16 +35,18 @@ public class WriteLog {
 	
 	//tạo kết nối tới config
 	
-	public void connectConfig(String idConFig) {
+	public void connectConfig(String id_ConFig) {
 		try {
-			Connection connectControlDB = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
-//			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb", "root","sa123");
-			Statement statement_controldb = connectControlDB.createStatement();
-			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ idConFig + "'";
-			ResultSet rs = statement_controldb.executeQuery(sql);
-				
+//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
+//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=testwh", "root","sa123");
+			Connection connectControlDB = ConnectDB.getConnectMySQL("jdbc:mysql://localhost:3306/controldb", "root","sa123");
+			Statement statement = connectControlDB.createStatement();
+			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ id_ConFig + "'";
+			ResultSet rs = statement.executeQuery(sql);
+			
+			
 			// Di chuyển con trỏ xuống bản ghi kế tiếp.
-			if (rs.next()) {
+			if(rs.next()) {
 				// set giá trị 
 				config.setId(rs.getString(1));
 				config.setSource(rs.getString(2));
@@ -55,7 +56,7 @@ public class WriteLog {
 				config.setPw_Source(rs.getString(6));
 				config.setPw_Des(rs.getString(7));
 				config.setDelimiters(rs.getString(8));
-				config.setPort(rs.getString(9));
+				config.setPort(rs.getInt(9));
 				config.setFormat_Name(rs.getString(10));
 				format_Name = config.getFormat_Name();
 				}
@@ -79,20 +80,19 @@ public class WriteLog {
 			String path = writeLog.config.getSource();
 			String hostName = writeLog.getHost(path);
 			String remotePath = writeLog.getRemotePath(path);
-			int port = Integer.parseInt(writeLog.config.getPort());
+			int port = writeLog.config.getPort();
 			String userName = writeLog.config.getUsername_Source();
 			String pass = writeLog.config.getPw_Source();
 			String localPath =  "D:\\quang";
 
-			
+			//kết nối tới máy chủ ssh
 			CkSsh ssh = new CkSsh();
 			CkGlobal glob = new CkGlobal();
 			glob.UnlockBundle("Anything for 30-day trial");
 			
-			//kết nối tới máy chủ ssh
 			boolean success = ssh.Connect(hostName, port);
 			if (success != true) {
-				System.out.println(ssh.lastErrorText());
+				System.out.println("Kết nối đến server bị lỗi...");				
 				return;
 			}
 			// đợi 5s để đọc phản hồi
@@ -100,8 +100,9 @@ public class WriteLog {
 			
 			// Xác thực bằng tên đăng nhập / mật khẩu:
 			success = ssh.AuthenticatePw(userName, pass);
+			System.out.println("Đã đăng nhập");
 			if (success != true) {
-				System.out.println(ssh.lastErrorText());
+				System.out.println("Đăng nhập thất bại");
 				return;
 			}
 			
@@ -123,8 +124,11 @@ public class WriteLog {
 			}
 			System.out.println("SCP download file success.");
 			System.out.println("-------------------------------");
+			
+			// Ngắt kết nối server
 			ssh.Disconnect();
 		}
+		
 		
 		static {
 			try {
@@ -139,7 +143,8 @@ public class WriteLog {
 		
 	//   drive.ecepvn.org/volume1/ECEP/song.nguyen/DW_2020/data	
 		
-	//cắt ra phần host
+	//cắt ra phần host:  drive.ecepvn.org
+
 	public String getHost(String path) {
 		String hostName = "";
 		int num = path.indexOf("/");
@@ -148,7 +153,8 @@ public class WriteLog {
 	}
 	
 	
-	// cắt ra phần remotepath
+	// cắt ra phần remotepath: /volume1/ECEP/song.nguyen/DW_2020/data
+	
 	public String getRemotePath(String path) {
 		String remotePath = "";
 		int num = path.indexOf("/");
@@ -170,41 +176,49 @@ public class WriteLog {
 		}
 //				sendMail(result);
 //				System.out.println("SEND MAIL SUCCESS");
-			
 	}
 	
 
 	// thực hiện việc ghi log
 	public void executeWriteLog(File file) {
-		// lấy ngày, giờ  ghi log
+		// lấy ngày, giờ hiện tại 
+		Date date = new Date();
 		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
-		Date s = new Date();
-		String dateFormat = format.format(s);
+		String dateFormat = format.format(date);
 
 		try {
 			// tạo kết nối để thực hiện việc ghi log
-			Connection connectControlDB = ConnectDB.getConnecSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
-//			Connection connectControlDB = ConnectDB.getConnection("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
+//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
+//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=testwh", "root","sa123");
+			Connection connectControlDB = ConnectDB.getConnectMySQL("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
 			String sql_insert = "{call sp_insert_log (?,?,?,?,?,?,?) }" ;
-			CallableStatement statement = connectControlDB.prepareCall(sql_insert);
-			statement.setString(1, config.getId().concat("_" +file.getName()));
-			statement.setString(2, config.getId());
-			statement.setString(3, file.getName());
-			statement.setString(4, "ER");
-			statement.setString(5, writeLog.getExtend(file.getAbsolutePath()));
-			statement.setString(6, dateFormat);
-			statement.setString(7, "NULL");
-
-			statement.executeUpdate();
+			CallableStatement callableStatement = connectControlDB.prepareCall(sql_insert);
+//			callableStatement.setString(1, config.getId().concat("_"+ file.getName()));
+			callableStatement.setInt(1, 1);
+//			callableStatement.setInt(2, config.getId());
+			callableStatement.setInt(2, 2);
+			callableStatement.setString(3, file.getName());
+			callableStatement.setString(4, "ER");
+			callableStatement.setString(5, writeLog.getExtend(file.getAbsolutePath()));
+			callableStatement.setString(6, dateFormat);
+			callableStatement.setString(7, "NULL");
+			
+			int count = callableStatement.executeUpdate();
 			
 			// đóng kết nối
 			connectControlDB.close();
 			
+			if ( count > 0 ) {
 			// in ra màn hình
 			System.out.println("write log: " + file.getName());
 			System.out.println("------------------------------");
 			
-			
+			}else {
+				// in ra màn hình
+				System.out.println(file.getName() + "\t" +"da ghi log roi");
+				System.out.println("---------------------------------------------------");
+				
+			}
 			
 		} catch (Exception e) {
 			System.out.println("fail");
@@ -224,48 +238,55 @@ public class WriteLog {
 	
 	// send Mail
 	public void sendMail(String text) throws AddressException, MessagingException {
+		
+		// Tạo đối tượng Properties và chỉ định thông tin host, port
 		Properties p = new Properties();
 		p.put("mail.smtp.auth", "true");
 		p.put("mail.smtp.starttls.enable", "true");
+		
+		//host name
 		p.put("mail.smtp.host", "smtp.gmail.com");
+		
+		//port
 		p.put("mail.smtp.port", 587);
-		// get Session
+		
+		// Tạo đối tượng Session (phiên làm việc)
 		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication("phamvanquang16599@gmail.com", "0975390766");
+				return new PasswordAuthentication("phamquang16599@gmail.com", "0975390766");
 			}
 		});
+		
+		//Tạo đối tượng messeage
 		Message msg = new MimeMessage(s);
-		msg.setFrom(new InternetAddress("phamvanquang16599@gmail.com"));
-		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("phamquang16599@gmail.com"));
+		// email người gửi
+		msg.setFrom(new InternetAddress("phamquang16599@gmail.com"));
+		// email người nhận
+		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("datawarehousenhom15@gmail.com"));
+		// chủ đề của mail
 		msg.setSubject("Write Log");
+		// nội dung mail
 		msg.setText(text);
 
+		// Gửi mail
 		Transport.send(msg);
 	}
-	
-	public void mainWriteLog(String idConFig) throws AddressException, MessagingException {
-		writeLog.connectConfig(idConFig);
-		writeLog.DownloadBySCP();
+//	public void mainWriteLog(String id_ConFig) throws AddressException, MessagingException {
+//		writeLog.connectConfig(id_ConFig);
+//		writeLog.DownloadBySCP();
+//		writeLog.checkFile();
+//		
+//	}
+
+		
+	public static void main(String[] args) throws AddressException, MessagingException {
+//		for(int i =0;i<args.length;i++) {
+//			writeLog.mainWriteLog(Integer.parseInt(args[i]));
+//		}
+		
+//		writeLog.connectConfig(2);
+//		writeLog.DownloadBySCP();
 		writeLog.checkFile();
 		
 	}
-
-		
-//	public static void main(String[] args) throws AddressException, MessagingException {
-//		String hostname = "drive.ecepvn.org";
-//		int port = 2227;
-//		String user = "guest_access";
-//		String pw = "123456";
-//		String remotePath = "/volume1/ECEP/song.nguyen/DW_2020/data";
-//		String localPath = "D:\\quang";
-//		DownloadBySCP(hostname, port, user, pw, remotePath, localPath);
-//	 	writeLog.executeWriteLog(new File("D:\\sv.xlsx"));
-		
-//		writeLog.connectConfig("2");
-//		writeLog.connectConfig(args[0]);
-//		writeLog.DownloadBySCP();
-//		writeLog.checkFile();
-		
-//	}
 }

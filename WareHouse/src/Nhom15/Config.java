@@ -1,4 +1,4 @@
-package Nhom15;
+package TH;
 
 public class Config {
 	String id;
@@ -9,7 +9,7 @@ public class Config {
 	String pw_Source;
 	String pw_Des;
 	String delimiters;
-	String port;
+	int port;
 	String format_Name;
 	
 
@@ -19,7 +19,7 @@ public class Config {
 
 
 	public Config(String id, String source, String destination, String username_Source, String username_Des,
-			String pw_Source, String pw_Des, String delimiters, String port, String format_Name) {
+			String pw_Source, String pw_Des, String delimiters, int port, String format_Name) {
 		super();
 		this.id = id;
 		this.source = source;
@@ -114,12 +114,12 @@ public class Config {
 	}
 
 
-	public String getPort() {
+	public int getPort() {
 		return port;
 	}
 
 
-	public void setPort(String port) {
+	public void setPort(int port) {
 		this.port = port;
 	}
 
