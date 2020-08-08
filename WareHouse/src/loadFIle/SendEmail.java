@@ -6,21 +6,6 @@ import javax.mail.internet.*;
 
 public class SendEmail {
 
-	private static String USER_NAME = "hothanhhiepb5@gmail.com"; // GMail user name (just the part before "@gmail.com")
-	private static String PASSWORD = "thanhhiep1998"; // GMail password
-	private static String RECIPIENT = "hothanhhiepc5@gmail.com";
-
-	public static void main(String[] args) {
-//        String from = USER_NAME;
-//        String pass = PASSWORD;
-//        String[] to = { RECIPIENT }; // list of recipient email addresses
-//        String subject = "Java send mail example";
-//        String body = "Welcome to JavaMail!";
-//
-//        sendFromGMail(from, pass, to, subject, body);
-//        System.out.println("gui thanh cong cmnr");
-	}
-
 	public static void sendFromGMail(String from, String pass, String[] to, String subject, String body) {
 		Properties props = System.getProperties();
 		String host = "smtp.gmail.com";

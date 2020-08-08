@@ -23,20 +23,26 @@ public class Load {
 	static final String USER = "root";
 	static final String PASS = "123456";
 	static Connection conn = null;
+	// cai nay chay procedure
 	static CallableStatement stmt = null;
+	// cai nay de luu danh sach duong dan file
 	static ArrayList<String> listER = new ArrayList<String>();
+	// cai nay de in cho dep
 	static Map<String, String> map = new HashMap<>();
-	static SendEmail sendMail = new SendEmail();
-	private static String USER_NAME = "hothanhhiepc5@gmail.com"; // GMail user
-																// name (just
-																// the part
-																// before
-																// "@gmail.com")
+	// lop send mail
+	static SendEmail sendMail;
+	private static String USER_NAME = "gaoredlion1998@gmail.com"; // GMail user
+	// mail gui // name (just
+	// the part
+	// before
+	// "@gmail.com")
 	private static String PASSWORD = "thanhhiep1998"; // GMail password
-	private static String RECIPIENT = "hothanhhiepb5@gmail.com";
-	String subject = "Thong bao ";
-	String body = "load to stagging thanh cong";
-	String[] listEmail = { RECIPIENT };
+	private static String RECIPIENT = "thanhhiep11031998@gmail.com"; // mail nhan
+	static String subject = "Thong bao";
+	static String body = "Load thanh cong...";
+	// cai nay la gui cho nhieu ng
+	static String[] listEmail = { RECIPIENT };
+	// may cai truong nay trong table dataconfig
 	static String table_target = "";
 	static String db_target = "";
 	static String temp_target = "";
@@ -99,8 +105,8 @@ public class Load {
 												// bang sinhvien
 		String remotePath = "/volume1/ECEP/song.nguyen/DW_2020/data";
 		String localPath = "C:\\Users\\Thanh Hiep\\Downloads\\New folder"; // thu muc muon
-																	// down file
-																	// ve
+		// down file
+		// ve
 		success = scp.SyncTreeDownload(remotePath, localPath, 2, false);
 		if (success != true) {
 			System.out.println(scp.lastErrorText());
@@ -156,20 +162,21 @@ public class Load {
 
 		}
 
-		// sendMail.sendFromGMail(USER_NAME, PASSWORD, listEmail, subject,
-		// body);
 		System.err.println("gui email ok");
 	}
 
 	private static void loadToTemp() throws SQLException {
+		// chon db minh muon su dung
 		String use_dc = "use " + db_target;
 		stmt.executeUpdate(use_dc);
+		// copy toan bo stagging qua temp
 		String call_insert = " insert into " + temp_target + " select * from " + table_target + "";
 		stmt = conn.prepareCall(call_insert);
 		stmt.executeUpdate();
 		System.err.println("load from stagging to temp");
 
 		System.out.println("dung db sinh vien");
+		// nay la de xoa stagging
 		String call_truncate = " TRUNCATE TABLE " + table_target + ";";
 		stmt = conn.prepareCall(call_truncate);
 		System.out.println("xoa du lieu trong stagging");
@@ -181,16 +188,21 @@ public class Load {
 	private static void editTemp() throws SQLException {
 		String use_dc = "use " + db_target;
 		stmt.executeUpdate(use_dc);
+		// cai cu cac nay de chay duoc update
+		String setSafeMode = "SET SQL_SAFE_UPDATES = 0;";
+		stmt.executeUpdate(use_dc);
+		// xoa cmn dong stt
+		String deleteStt = "delete from  " + temp_target + " where stt='stt'";
+		stmt.executeUpdate(deleteStt);
+		System.out.println("xoa dong stt");
+		// them sk vao ne
 		String alter_temp = " ALTER TABLE " + temp_target + " ADD sk INT PRIMARY KEY AUTO_INCREMENT;";
 		stmt = conn.prepareCall(alter_temp);
 		stmt.executeUpdate();
 		System.out.println("tao khoa sk cho temp");
-		String setSafeMode = "SET SQL_SAFE_UPDATES = 0;";
-		stmt.executeUpdate(use_dc);
-		String deleteStt = "delete from  " + temp_target + " where stt='stt'";
-		stmt.executeUpdate(deleteStt);
-		System.out.println("xoa dong stt");
-
+		sendMail = new SendEmail();
+		sendMail.sendFromGMail(USER_NAME, PASSWORD, listEmail, subject, body);
+		System.out.println("gui thanh cong cmnr");
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
@@ -199,8 +211,8 @@ public class Load {
 
 		connectDb();
 		getConfigData(1);
-		getFileER(1);
-		loadToStagging();
+		// getFileER(1);
+		// loadToStagging();
 		loadToTemp();
 		editTemp();
 
