@@ -1,3 +1,8 @@
 eclipse.preferences.version=1
 encoding//src/LoadToDataMart.java=UTF-8
+encoding//src/Nhom15/ConnectDB.java=UTF-8
+encoding//src/Nhom15/Job_Schedule.java=UTF-8
+encoding//src/Nhom15/LoadToDW.java=UTF-8
+encoding//src/Nhom15/SendMail.java=UTF-8
 encoding//src/Nhom15/WriteLog.java=UTF-8
+encoding//src/loadFIleToStaging/LoadtoStagging.java=UTF-8

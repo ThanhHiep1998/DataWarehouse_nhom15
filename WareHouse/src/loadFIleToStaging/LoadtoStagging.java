@@ -1,12 +1,9 @@
 package loadFIleToStaging;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.mysql.jdbc.PreparedStatement;
 
 public class LoadtoStagging {
 
@@ -45,7 +42,7 @@ public class LoadtoStagging {
 		LocalDateTime now = LocalDateTime.now();
 		System.out.println(dtf.format(now));
 		System.out.println(start);
-		///insert cả 1 db này vào db khác, 2db phái giống nhau về số lượng côt
+		///insert cáº£ 1 db nÃ y vÃ o db khÃ¡c, 2db phÃ¡i giá»‘ng nhau vá»� sá»‘ lÆ°á»£ng cÃ´t
 		
 		String sql2 = "insert datamart.datamart select * from sinhvien.sinhvien ";
 

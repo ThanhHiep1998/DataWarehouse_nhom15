@@ -1,4 +1,4 @@
-package TH;
+package Nhom15;
 
 public class Config {
 	String id;

@@ -1,4 +1,4 @@
-package TH;
+package Nhom15;
 
 import java.io.File;
 import java.sql.CallableStatement;
@@ -38,7 +38,6 @@ public class WriteLog {
 	public void connectConfig(String id_ConFig) {
 		try {
 //			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
-//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=testwh", "root","sa123");
 			Connection connectControlDB = ConnectDB.getConnectMySQL("jdbc:mysql://localhost:3306/controldb", "root","sa123");
 			Statement statement = connectControlDB.createStatement();
 			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ id_ConFig + "'";
@@ -189,7 +188,6 @@ public class WriteLog {
 		try {
 			// tạo kết nối để thực hiện việc ghi log
 //			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
-//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=testwh", "root","sa123");
 			Connection connectControlDB = ConnectDB.getConnectMySQL("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
 			String sql_insert = "{call sp_insert_log (?,?,?,?,?,?,?) }" ;
 			CallableStatement callableStatement = connectControlDB.prepareCall(sql_insert);
