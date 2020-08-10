@@ -97,7 +97,7 @@ public class LoadToDW {
 	private static void editTemp() throws SQLException, AddressException, MessagingException {
 		String use_dc = "use " + db_target;
 		stmt.executeUpdate(use_dc);
-		// cai cu cac nay de chay duoc update
+		// cai nay de chay duoc update
 		String setSafeMode = "SET SQL_SAFE_UPDATES = 0;";
 		stmt.executeUpdate(use_dc);
 		// xoa cmn dong stt
