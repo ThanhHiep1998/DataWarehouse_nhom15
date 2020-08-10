@@ -1,4 +1,4 @@
-package Nhom15;
+package TH;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -43,8 +43,8 @@ public class LoadToDW {
 		// before
 		// "@gmail.com")
 	
-	private static String USER_NAME = "gaoredlion1998@gmail.com"; // GMail user
-	private static String PASSWORD = "thanhhiep1998"; // GMail password
+//	private static String USER_NAME = "gaoredlion1998@gmail.com"; // GMail user
+//	private static String PASSWORD = "thanhhiep1998"; // GMail password
 	private static String RECIPIENT = "datawarehousenhom15@gmail.com"; // mail nhan
 	static String subject = "Thong bao";
 	static String body = "Load thanh cong...";
@@ -56,14 +56,14 @@ public class LoadToDW {
 	static String db_target = "";
 	static String temp_target = "";
 
-	static void connectDb() throws ClassNotFoundException, SQLException {
+	static void connectDb() throws ClassNotFoundException, SQLException, AddressException, MessagingException {
 		//Mo mot ket noi
 		System.out.println("Dang ket noi toi co so du lieu ...");
 		conn = ConnectDB.getConnectMySQL(DB_URL, USER,PASS);
 	}
 	
 	private static void getData() throws SQLException {
-		 Statement statement = conn.createStatement();
+		Statement statement = conn.createStatement();
 		String sql = "Select db_target, table_target, temp_target  from dataconfig ";
 		ResultSet rs = statement.executeQuery(sql);
 		
@@ -109,9 +109,9 @@ public class LoadToDW {
 		stmt = conn.prepareCall(alter_temp);
 		stmt.executeUpdate();
 		System.out.println("tao khoa sk cho temp");
-//		sendMail = new SendMail();
+		sendMail = new SendMail();
 //		sendMail.sendFromGMail(USER_NAME, PASSWORD, listEmail, subject, body);
-//		sendMail.sendMail("load success");
+		sendMail.sendMail(subject, body);
 		System.out.println("gui thanh cong cmnr");
 	}
 
