@@ -8,16 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Properties;
 
-import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
 import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 import com.chilkatsoft.CkGlobal;
 import com.chilkatsoft.CkScp;
@@ -29,15 +22,15 @@ public class WriteLog {
 //	 khai báo 
 	Config config = new Config();
 	public static WriteLog writeLog = new WriteLog();
-	String text = "", result = "", format_Name= "";
-	
-	
+	String result = "", format_Name= "";
+	static SendMail sendMail = new SendMail();
 	
 	//tạo kết nối tới config
 	
-	public void connectConfig(String id_ConFig) {
+	public void connectConfig(String id_ConFig) throws AddressException, MessagingException {
 		try {
 //			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
+//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=testwh", "root","sa123");
 			Connection connectControlDB = ConnectDB.getConnectMySQL("jdbc:mysql://localhost:3306/controldb", "root","sa123");
 			Statement statement = connectControlDB.createStatement();
 			String sql = "Select id, source, destination, username_Source,username_Des, pw_Source,pw_Des,delimiters, port, format_Name from config where id ='"+ id_ConFig + "'";
@@ -60,7 +53,7 @@ public class WriteLog {
 				format_Name = config.getFormat_Name();
 				}
 				
-				
+			
 			// Đóng kết nối
 			connectControlDB.close();
 			config.toString();
@@ -74,7 +67,7 @@ public class WriteLog {
 	
 	// thực hiện download file từ sever
 //	public static void download(String hostName, int port, String userName, String pass, String remotePath,String localPath) 
-		public static void DownloadBySCP() {
+		public static void DownloadBySCP() throws AddressException, MessagingException {
 		// khai báo biến
 			String path = writeLog.config.getSource();
 			String hostName = writeLog.getHost(path);
@@ -91,6 +84,7 @@ public class WriteLog {
 			
 			boolean success = ssh.Connect(hostName, port);
 			if (success != true) {
+				sendMail.sendMail("Lỗi", "Kết nối tới server thất bại");
 				System.out.println("Kết nối đến server bị lỗi...");				
 				return;
 			}
@@ -169,17 +163,16 @@ public class WriteLog {
 			File[] childFile = Folder.listFiles();
 			for (File file : childFile) {
 				executeWriteLog(file);
-				text = file.getName() +"\t" + "------- write log success"  + " \n";
-				result += text;
 					
 		}
-//				sendMail(result);
-//				System.out.println("SEND MAIL SUCCESS");
+			// send mail
+		sendMail.sendMail("Write Log", result);
+		System.out.println("SEND MAIL SUCCESS");
 	}
 	
 
 	// thực hiện việc ghi log
-	public void executeWriteLog(File file) {
+	public void executeWriteLog(File file) throws AddressException, MessagingException {
 		// lấy ngày, giờ hiện tại 
 		Date date = new Date();
 		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
@@ -188,12 +181,13 @@ public class WriteLog {
 		try {
 			// tạo kết nối để thực hiện việc ghi log
 //			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=controldb", "root","sa123");
+//			Connection connectControlDB = ConnectDB.getConnectSQLServer("jdbc:sqlserver://localhost;databaseName=testwh", "root","sa123");
 			Connection connectControlDB = ConnectDB.getConnectMySQL("jdbc:mysql://localhost:3306/controldb?useSSL=false","root", "sa123");
 			String sql_insert = "{call sp_insert_log (?,?,?,?,?,?,?) }" ;
 			CallableStatement callableStatement = connectControlDB.prepareCall(sql_insert);
 //			callableStatement.setString(1, config.getId().concat("_"+ file.getName()));
-			callableStatement.setInt(1, 1);
-//			callableStatement.setInt(2, config.getId());
+			callableStatement.setString(1, "1".concat("_"+file.getName()));
+//			callableStatement.setInt(2, Integer.valueOf(config.getId()));
 			callableStatement.setInt(2, 2);
 			callableStatement.setString(3, file.getName());
 			callableStatement.setString(4, "ER");
@@ -209,11 +203,13 @@ public class WriteLog {
 			if ( count > 0 ) {
 			// in ra màn hình
 			System.out.println("write log: " + file.getName());
+			result += file.getName() +"\t" + "------- write log success"  + " \n";
 			System.out.println("------------------------------");
 			
 			}else {
 				// in ra màn hình
 				System.out.println(file.getName() + "\t" +"da ghi log roi");
+				result += file.getName() +"\t" + "------- đã viết log rồi"  + " \n";
 				System.out.println("---------------------------------------------------");
 				
 			}
@@ -222,8 +218,10 @@ public class WriteLog {
 			System.out.println("fail");
 			System.out.println(e);
 		}
-
+		
+		
 	}
+
 	
 	//cắt lấy phần mở rộng
 	public String getExtend(String path) {
@@ -235,40 +233,42 @@ public class WriteLog {
 	
 	
 	// send Mail
-	public void sendMail(String text) throws AddressException, MessagingException {
-		
-		// Tạo đối tượng Properties và chỉ định thông tin host, port
-		Properties p = new Properties();
-		p.put("mail.smtp.auth", "true");
-		p.put("mail.smtp.starttls.enable", "true");
-		
-		//host name
-		p.put("mail.smtp.host", "smtp.gmail.com");
-		
-		//port
-		p.put("mail.smtp.port", 587);
-		
-		// Tạo đối tượng Session (phiên làm việc)
-		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication("phamquang16599@gmail.com", "0975390766");
-			}
-		});
-		
-		//Tạo đối tượng messeage
-		Message msg = new MimeMessage(s);
-		// email người gửi
-		msg.setFrom(new InternetAddress("phamquang16599@gmail.com"));
-		// email người nhận
-		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("datawarehousenhom15@gmail.com"));
-		// chủ đề của mail
-		msg.setSubject("Write Log");
-		// nội dung mail
-		msg.setText(text);
-
-		// Gửi mail
-		Transport.send(msg);
-	}
+//	public void sendMail(String text) throws AddressException, MessagingException {
+//		
+//		// Tạo đối tượng Properties và chỉ định thông tin host, port
+//		Properties p = new Properties();
+//		p.put("mail.smtp.auth", "true");
+//		p.put("mail.smtp.starttls.enable", "true");
+//		
+//		//host name
+//		p.put("mail.smtp.host", "smtp.gmail.com");
+//		
+//		//port
+//		p.put("mail.smtp.port", 587);
+//		
+//		// Tạo đối tượng Session (phiên làm việc)
+//		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
+//			protected PasswordAuthentication getPasswordAuthentication() {
+//				return new PasswordAuthentication("phamquang16599@gmail.com", "0975390766");
+//			}
+//		});
+//		
+//		//Tạo đối tượng messeage
+//		Message msg = new MimeMessage(s);
+//		// email người gửi
+//		msg.setFrom(new InternetAddress("phamquang16599@gmail.com"));
+//		// email người nhận
+//		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("datawarehousenhom15@gmail.com"));
+//		// chủ đề của mail
+//		msg.setSubject("Write Log");
+//		// nội dung mail
+//		msg.setText(text);
+//
+//		// Gửi mail
+//		Transport.send(msg);
+//	}
+	
+	
 //	public void mainWriteLog(String id_ConFig) throws AddressException, MessagingException {
 //		writeLog.connectConfig(id_ConFig);
 //		writeLog.DownloadBySCP();
@@ -279,12 +279,11 @@ public class WriteLog {
 		
 	public static void main(String[] args) throws AddressException, MessagingException {
 //		for(int i =0;i<args.length;i++) {
-//			writeLog.mainWriteLog(Integer.parseInt(args[i]));
+//			writeLog.mainWriteLog((args[i]));
 //		}
 		
-//		writeLog.connectConfig(2);
+//		writeLog.connectConfig("2");
 //		writeLog.DownloadBySCP();
 		writeLog.checkFile();
-		
 	}
 }
