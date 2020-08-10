@@ -74,7 +74,14 @@ public class LoadToDW {
 		}
 	}
 
-	
+	private static void xoaDongSK() throws SQLException {
+		// Xoa dong SK
+		String delete_sk = "ALTER TABLE  " + temp_target + " DROP COLUMN sk; ";
+		stmt = conn.prepareCall(delete_sk);
+		stmt.execute();
+		System.out.println("xoa dong sk");
+	}
+
 	private static void loadToTemp() throws SQLException {
 		// chon db minh muon su dung
 		String use_db = "use " + db_target;
@@ -118,6 +125,7 @@ public class LoadToDW {
 	public static void main(String[] args) throws ClassNotFoundException, SQLException, AddressException, MessagingException {
 		connectDb();
 		getData();
+		xoaDongSK();
 		loadToTemp();
 		editTemp();
 		
