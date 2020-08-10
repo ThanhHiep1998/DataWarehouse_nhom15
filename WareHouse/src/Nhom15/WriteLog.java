@@ -232,42 +232,6 @@ public class WriteLog {
 	}
 	
 	
-	// send Mail
-//	public void sendMail(String text) throws AddressException, MessagingException {
-//		
-//		// Tạo đối tượng Properties và chỉ định thông tin host, port
-//		Properties p = new Properties();
-//		p.put("mail.smtp.auth", "true");
-//		p.put("mail.smtp.starttls.enable", "true");
-//		
-//		//host name
-//		p.put("mail.smtp.host", "smtp.gmail.com");
-//		
-//		//port
-//		p.put("mail.smtp.port", 587);
-//		
-//		// Tạo đối tượng Session (phiên làm việc)
-//		Session s = Session.getInstance(p, new javax.mail.Authenticator() {
-//			protected PasswordAuthentication getPasswordAuthentication() {
-//				return new PasswordAuthentication("phamquang16599@gmail.com", "0975390766");
-//			}
-//		});
-//		
-//		//Tạo đối tượng messeage
-//		Message msg = new MimeMessage(s);
-//		// email người gửi
-//		msg.setFrom(new InternetAddress("phamquang16599@gmail.com"));
-//		// email người nhận
-//		msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("datawarehousenhom15@gmail.com"));
-//		// chủ đề của mail
-//		msg.setSubject("Write Log");
-//		// nội dung mail
-//		msg.setText(text);
-//
-//		// Gửi mail
-//		Transport.send(msg);
-//	}
-	
 	
 //	public void mainWriteLog(String id_ConFig) throws AddressException, MessagingException {
 //		writeLog.connectConfig(id_ConFig);

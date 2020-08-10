@@ -7,21 +7,14 @@ import javax.mail.internet.*;
 public class SendMail {
 
 	public static void sendFromGMail(String from, String pass, String[] to, String subject, String body) {
-		// Tạo đối tượng Properties và chỉ định thông tin host, port
 		Properties props = System.getProperties();
 		String host = "smtp.gmail.com";
 		props.put("mail.smtp.starttls.enable", "true");
-		//host name
 		props.put("mail.smtp.host", host);
-		// email người gửi
 		props.put("mail.smtp.user", from);
-		// pass người gửi
 		props.put("mail.smtp.password", pass);
-		//port
 		props.put("mail.smtp.port", "587");
 		props.put("mail.smtp.auth", "true");
-
-		// Tạo đối tượng Session (phiên làm việc)
 		Session session = Session.getDefaultInstance(props);
 		MimeMessage message = new MimeMessage(session);
 
@@ -38,13 +31,10 @@ public class SendMail {
 				message.addRecipient(Message.RecipientType.TO, toAddress[i]);
 			}
 			
-			// chủ đề của mail
 			message.setSubject(subject);
-			// nội dung mail
 			message.setText(body);
 			Transport transport = session.getTransport("smtp");
 			transport.connect(host, from, pass);
-			// Gửi mail
 			transport.sendMessage(message, message.getAllRecipients());
 			transport.close();
 		} catch (AddressException ae) {
